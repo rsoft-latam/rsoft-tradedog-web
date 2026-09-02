@@ -67,46 +67,46 @@ export default function EquityChart({ points }: { points: EquityPoint[] }) {
     >
       <defs>
         <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.02" />
+          <stop offset="0%" stopColor="#632ca6" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#632ca6" stopOpacity="0.01" />
         </linearGradient>
       </defs>
 
       {gridVals.map((v, i) => (
         <g key={i}>
-          <line x1={PAD.l} x2={W - PAD.r} y1={sy(v)} y2={sy(v)} stroke="#2b2344" strokeWidth="1" />
-          <text x={PAD.l - 8} y={sy(v) + 4} textAnchor="end" fontSize="11" fill="#9a92b3">
+          <line x1={PAD.l} x2={W - PAD.r} y1={sy(v)} y2={sy(v)} stroke="#eceaf2" strokeWidth="1" />
+          <text x={PAD.l - 8} y={sy(v) + 4} textAnchor="end" fontSize="11" fill="#6f6b85">
             {fmt(v)}
           </text>
         </g>
       ))}
 
       <path d={area} fill="url(#eqfill)" />
-      <path d={path} fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinejoin="round" />
+      <path d={path} fill="none" stroke="#632ca6" strokeWidth="2" strokeLinejoin="round" />
 
       {/* time labels: first and last */}
-      <text x={PAD.l} y={H - 8} fontSize="11" fill="#9a92b3">
+      <text x={PAD.l} y={H - 8} fontSize="11" fill="#6f6b85">
         {new Date(xs[0]).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </text>
-      <text x={W - PAD.r} y={H - 8} fontSize="11" fill="#9a92b3" textAnchor="end">
+      <text x={W - PAD.r} y={H - 8} fontSize="11" fill="#6f6b85" textAnchor="end">
         {new Date(xs[xs.length - 1]).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </text>
 
       {hi !== null && (
         <g>
-          <line x1={sx(xs[hi])} x2={sx(xs[hi])} y1={PAD.t} y2={H - PAD.b} stroke="#9a92b3" strokeWidth="1" strokeDasharray="3,3" />
-          <circle cx={sx(xs[hi])} cy={sy(ys[hi])} r="4" fill="#a78bfa" stroke="#171226" strokeWidth="2" />
+          <line x1={sx(xs[hi])} x2={sx(xs[hi])} y1={PAD.t} y2={H - PAD.b} stroke="#6f6b85" strokeWidth="1" strokeDasharray="3,3" />
+          <circle cx={sx(xs[hi])} cy={sy(ys[hi])} r="4" fill="#632ca6" stroke="#ffffff" strokeWidth="2" />
           {(() => {
             const boxW = 128, boxH = 40;
             const bx = Math.min(Math.max(sx(xs[hi]) - boxW / 2, PAD.l), W - PAD.r - boxW);
             const by = sy(ys[hi]) - boxH - 12 < PAD.t ? sy(ys[hi]) + 12 : sy(ys[hi]) - boxH - 12;
             return (
               <g>
-                <rect x={bx} y={by} width={boxW} height={boxH} rx="6" fill="#1e1833" stroke="#2b2344" />
-                <text x={bx + boxW / 2} y={by + 17} textAnchor="middle" fontSize="12" fontWeight="700" fill="#ece9f4">
+                <rect x={bx} y={by} width={boxW} height={boxH} rx="6" fill="#ffffff" stroke="#eceaf2" />
+                <text x={bx + boxW / 2} y={by + 17} textAnchor="middle" fontSize="12" fontWeight="700" fill="#21173a">
                   {"$" + ys[hi].toLocaleString("en-US", { maximumFractionDigits: 2 })}
                 </text>
-                <text x={bx + boxW / 2} y={by + 32} textAnchor="middle" fontSize="10" fill="#9a92b3">
+                <text x={bx + boxW / 2} y={by + 32} textAnchor="middle" fontSize="10" fill="#6f6b85">
                   {new Date(xs[hi]).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </text>
               </g>
