@@ -19,6 +19,8 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
   const [sent, setSent] = useState<Bubble[]>([]);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [typing, setTyping] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const incoming: Bubble[] = ledger
@@ -72,6 +74,27 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
     }
   }
 
+  async function ask() {
+    const q = draft.trim();
+    if (!q || typing) return;
+    setDraft("");
+    setSent((s) => [...s, { side: "me", text: q, ts: Date.now() }]);
+    setTyping(true);
+    try {
+      const r = await fetch(`${API}/api/v1/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: q }),
+      });
+      const data = await r.json();
+      setSent((s) => [...s, { side: "dog", text: String(data.reply ?? data.detail ?? "…"), ts: Date.now() }]);
+    } catch {
+      setSent((s) => [...s, { side: "dog", text: "⚠️ No te escuché bien — revisa la conexión.", ts: Date.now() }]);
+    } finally {
+      setTyping(false);
+    }
+  }
+
   if (!open) {
     return (
       <button className="phone-fab" onClick={() => setOpen(true)} title="Abrir WhatsApp">
@@ -104,6 +127,7 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
               </span>
             </div>
           ))}
+          {typing && <div className="wa-bubble dog wa-typing">🐕 escribiendo…</div>}
         </div>
         <div className="wa-actions">
           {COMMANDS.map((c) => (
@@ -116,6 +140,19 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
               {confirming === c.cmd ? "¿Seguro? 🛑" : `${c.icon} ${c.label}`}
             </button>
           ))}
+        </div>
+        <div className="wa-inputbar">
+          <input
+            className="wa-input"
+            placeholder="Pregúntale a TradeDog…"
+            value={draft}
+            maxLength={500}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && ask()}
+          />
+          <button className="wa-send" onClick={ask} disabled={typing || !draft.trim()}>
+            ➤
+          </button>
         </div>
       </div>
     </div>
