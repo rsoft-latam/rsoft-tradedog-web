@@ -14,6 +14,16 @@ type Position = {
   is_option: boolean;
 };
 
+type Asi = {
+  score: number;
+  label: string;
+  risk_level: string;
+  bullish_ratio: number;
+  total_agents: number;
+  herding: boolean;
+  side: string;
+};
+
 type Status = {
   guardian: string;
   equity: number;
@@ -21,6 +31,7 @@ type Status = {
   buying_power: number;
   positions: Position[];
   gates: Record<string, number>;
+  asi: Asi | null;
 };
 
 type LedgerEntry = { ts: string; kind: string; payload: Record<string, unknown> };
@@ -183,6 +194,25 @@ export default function Home() {
               <div className="label">Buying power</div>
               <div className="value">{usd(status?.buying_power)}</div>
               <div className="sub">available</div>
+            </div>
+            <div className="card">
+              <div className="label">Agent Herd Index</div>
+              {status?.asi ? (
+                <>
+                  <div className={`value ${status.asi.herding ? "red" : "green"}`}>
+                    {status.asi.score}
+                    <span style={{ fontSize: 13, fontWeight: 600, marginLeft: 8 }}>
+                      {status.asi.herding ? `⚠️ herding ${status.asi.side}` : "🟢 " + status.asi.label}
+                    </span>
+                  </div>
+                  <div className="sub">
+                    {Math.round(status.asi.bullish_ratio * 100)}% of {status.asi.total_agents} on-chain
+                    agents bullish · RSoft Sentiment (ERC-8004)
+                  </div>
+                </>
+              ) : (
+                <div className="value" style={{ fontSize: 14, color: "var(--muted)" }}>—</div>
+              )}
             </div>
             <div className="card">
               <div className="label">Risk gates</div>
