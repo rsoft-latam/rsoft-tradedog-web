@@ -61,18 +61,18 @@ function ConnectScreen({ onConnected }: { onConnected: () => void }) {
         <div className="big">🐕</div>
         <h1>TradeDog</h1>
         <p className="tag">Datadog watches your servers. TradeDog watches your trading agents.</p>
-        <div className="login-feat"><span className="ico">👁️</span> Vigila tu bot cada 60 segundos, 24/7</div>
-        <div className="login-feat"><span className="ico">🔧</span> Arregla órdenes atascadas y apaga bots rogue</div>
-        <div className="login-feat"><span className="ico">🛡️</span> Asegura tus posiciones con collars de opciones</div>
-        <div className="login-feat"><span className="ico">💬</span> Te habla por WhatsApp en cristiano</div>
+        <div className="login-feat"><span className="ico">👁️</span> Watches your bot every 60 seconds, 24/7</div>
+        <div className="login-feat"><span className="ico">🔧</span> Fixes stuck orders and kills rogue bots</div>
+        <div className="login-feat"><span className="ico">🛡️</span> Insures your positions with option collars</div>
+        <div className="login-feat"><span className="ico">💬</span> Talks to you on WhatsApp in plain words</div>
       </div>
       <div className="login-form">
         <div className="connect-card">
-          <h2>Conecta tu cuenta de Alpaca</h2>
-          <p className="sub">Paper trading · el guardián se activa al instante</p>
-          <div className="perm">✅ Leer posiciones y órdenes</div>
-          <div className="perm">✅ Ejecutar protecciones (collars, cancelaciones)</div>
-          <div className="perm">❌ Nunca retira fondos</div>
+          <h2>Connect your Alpaca account</h2>
+          <p className="sub">Paper trading · the guardian activates instantly</p>
+          <div className="perm">✅ Read positions and orders</div>
+          <div className="perm">✅ Execute protections (collars, cancellations)</div>
+          <div className="perm">❌ Never withdraws funds</div>
           <br />
           {error && <div className="error">{error}</div>}
           <input placeholder="API Key" value={key} onChange={(e) => setKey(e.target.value)} />
@@ -83,7 +83,7 @@ function ConnectScreen({ onConnected }: { onConnected: () => void }) {
             onChange={(e) => setSecret(e.target.value)}
           />
           <button onClick={connect} disabled={busy || !key || !secret}>
-            {busy ? "Conectando..." : "Conectar guardián"}
+            {busy ? "Connecting..." : "Activate guardian"}
           </button>
           <p className="note">ℹ️ Production roadmap: OAuth via Alpaca Connect (scoped, revocable)</p>
         </div>
@@ -148,9 +148,9 @@ export default function Home() {
         <div className="logo">🐕</div>
         <button className="side-item active" title="Overview">📊</button>
         <button className="side-item" title="Ledger" onClick={() => document.getElementById("ledger")?.scrollIntoView({ behavior: "smooth" })}>📜</button>
-        <button className="side-item" title="Posiciones" onClick={() => document.getElementById("positions")?.scrollIntoView({ behavior: "smooth" })}>💼</button>
+        <button className="side-item" title="Positions" onClick={() => document.getElementById("positions")?.scrollIntoView({ behavior: "smooth" })}>💼</button>
         <div className="spacer" />
-        <button className="side-item" title="Desconectar" onClick={() => { localStorage.removeItem("tradedog_connected"); setConnected(false); }}>⏻</button>
+        <button className="side-item" title="Disconnect" onClick={() => { localStorage.removeItem("tradedog_connected"); setConnected(false); }}>⏻</button>
       </aside>
 
       <div className="main">
@@ -158,12 +158,12 @@ export default function Home() {
           <span className="crumb"><b>TradeDog</b> / Overview</span>
           <input
             className="search"
-            placeholder="Filtrar eventos del ledger…"
+            placeholder="Filter ledger events…"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           />
           <span className={`badge ${apiUp ? "" : "off"}`}>
-            {apiUp ? "● Guardián activo" : "● API sin conexión"}
+            {apiUp ? "● Guardian active" : "● API offline"}
           </span>
         </div>
 
@@ -172,24 +172,24 @@ export default function Home() {
             <div className="card">
               <div className="label">Equity</div>
               <div className="value">{usd(status?.equity)}</div>
-              <div className="sub">cuenta paper vigilada</div>
+              <div className="sub">watched paper account</div>
             </div>
             <div className="card">
-              <div className="label">P&L hoy</div>
+              <div className="label">P&L today</div>
               <div className={`value ${pnlClass}`}>{usd(status?.pnl_today)}</div>
-              <div className="sub">vs cierre anterior</div>
+              <div className="sub">vs previous close</div>
             </div>
             <div className="card">
               <div className="label">Buying power</div>
               <div className="value">{usd(status?.buying_power)}</div>
-              <div className="sub">disponible</div>
+              <div className="sub">available</div>
             </div>
             <div className="card">
               <div className="label">Risk gates</div>
               <div className="value" style={{ fontSize: 14, lineHeight: 1.7 }}>
-                max loss/día: ${status?.gates?.max_daily_loss_usd ?? "—"}
+                max loss/day: ${status?.gates?.max_daily_loss_usd ?? "—"}
                 <br />
-                burst: {status?.gates?.order_burst_limit ?? "—"} órdenes/5min
+                burst: {status?.gates?.order_burst_limit ?? "—"} orders/5min
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function Home() {
           <div className="widget">
             <div className="widget-head">
               <h2>Equity</h2>
-              <span className="hint">un snapshot por tick del guardián</span>
+              <span className="hint">one snapshot per guardian tick</span>
               <div className="range">
                 {RANGES.map((r) => (
                   <button key={r.label} className={hours === r.hours ? "on" : ""} onClick={() => setHours(r.hours)}>
@@ -213,17 +213,17 @@ export default function Home() {
 
           <div className="widget" id="positions">
             <div className="widget-head">
-              <h2>Posiciones vigiladas</h2>
-              <span className="hint">{status?.positions?.length ?? 0} abiertas</span>
+              <h2>Watched positions</h2>
+              <span className="hint">{status?.positions?.length ?? 0} open</span>
             </div>
             <table>
               <thead>
                 <tr>
-                  <th>Símbolo</th>
+                  <th>Symbol</th>
                   <th>Qty</th>
-                  <th>Valor</th>
-                  <th>P&L no realizado</th>
-                  <th>Tipo</th>
+                  <th>Value</th>
+                  <th>Unrealized P&L</th>
+                  <th>Type</th>
                 </tr>
               </thead>
               <tbody>
@@ -235,12 +235,12 @@ export default function Home() {
                     <td style={{ color: p.unrealized_pl >= 0 ? "var(--green)" : "var(--red)" }}>
                       {usd(p.unrealized_pl)}
                     </td>
-                    <td>{p.is_option ? "🛡️ opción" : "acción / crypto"}</td>
+                    <td>{p.is_option ? "🛡️ option" : "stock / crypto"}</td>
                   </tr>
                 ))}
                 {!status?.positions?.length && (
                   <tr>
-                    <td colSpan={5} style={{ color: "var(--muted)" }}>Sin posiciones abiertas</td>
+                    <td colSpan={5} style={{ color: "var(--muted)" }}>No open positions</td>
                   </tr>
                 )}
               </tbody>
@@ -249,8 +249,8 @@ export default function Home() {
 
           <div className="widget" id="ledger">
             <div className="widget-head">
-              <h2>Ledger — cada decisión, auditada</h2>
-              <span className="hint">{shownLedger.length} eventos</span>
+              <h2>Ledger — every decision, audited</h2>
+              <span className="hint">{shownLedger.length} events</span>
             </div>
             <div className="feed">
               {shownLedger.map((e, i) => (
@@ -270,7 +270,7 @@ export default function Home() {
               ))}
               {!shownLedger.length && (
                 <div className="feed-item">
-                  <span style={{ color: "var(--muted)" }}>Sin actividad todavía — el perro está oliendo el terreno 🐕</span>
+                  <span style={{ color: "var(--muted)" }}>No activity yet — the dog is sniffing the ground 🐕</span>
                 </div>
               )}
             </div>

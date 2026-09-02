@@ -31,8 +31,8 @@ export default function EquityChart({ points }: { points: EquityPoint[] }) {
   if (!model) {
     return (
       <div className="chart-empty">
-        📈 El historial de equity aparecerá aquí cuando Supabase esté conectado y
-        el guardián acumule algunos ticks.
+        📈 Equity history will appear here once Supabase is connected and the
+        guardian has collected a few ticks.
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function EquityChart({ points }: { points: EquityPoint[] }) {
       onMouseMove={onMove}
       onMouseLeave={() => setHover(null)}
       role="img"
-      aria-label="Equity de la cuenta en el tiempo"
+      aria-label="Account equity over time"
     >
       <defs>
         <linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
