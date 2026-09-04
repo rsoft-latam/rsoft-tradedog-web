@@ -70,7 +70,7 @@ body {
 }
 .badge.off { background: var(--red-bg); color: var(--red); border-color: rgba(196,49,75,.35); }
 
-.content { padding: 20px 24px 120px; max-width: 1240px; }
+.content { padding: 20px 24px 120px; }
 
 /* ---------- widgets ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 14px; }
