@@ -118,20 +118,28 @@ export default function Home() {
   const [filter, setFilter] = useState("");
   const [apiUp, setApiUp] = useState(true);
 
+  // status + ledger every 10s; equity history every 60s (one snapshot/min anyway)
   const refresh = useCallback(async () => {
     try {
-      const [sr, lr, er] = await Promise.all([
+      const [sr, lr] = await Promise.all([
         fetch(`${API}/api/v1/status`),
         fetch(`${API}/api/v1/ledger?n=60`),
-        fetch(`${API}/api/v1/equity-history?hours=${hours}`),
       ]);
       if (!sr.ok) throw new Error(`status ${sr.status}`);
       setStatus(await sr.json());
       if (lr.ok) setLedger(((await lr.json()).entries ?? []).reverse());
-      if (er.ok) setEquity((await er.json()).points ?? []);
       setApiUp(true);
     } catch {
       setApiUp(false);
+    }
+  }, []);
+
+  const refreshEquity = useCallback(async () => {
+    try {
+      const er = await fetch(`${API}/api/v1/equity-history?hours=${hours}`);
+      if (er.ok) setEquity((await er.json()).points ?? []);
+    } catch {
+      /* chart keeps last data */
     }
   }, [hours]);
 
@@ -142,9 +150,16 @@ export default function Home() {
   useEffect(() => {
     if (!connected) return;
     refresh();
-    const id = setInterval(refresh, 5000);
+    const id = setInterval(refresh, 10000);
     return () => clearInterval(id);
   }, [connected, refresh]);
+
+  useEffect(() => {
+    if (!connected) return;
+    refreshEquity();
+    const id = setInterval(refreshEquity, 60000);
+    return () => clearInterval(id);
+  }, [connected, refreshEquity]);
 
   if (!connected) return <ConnectScreen onConnected={() => setConnected(true)} />;
 
