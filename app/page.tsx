@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Phone from "./Phone";
 import EquityChart, { EquityPoint } from "./EquityChart";
 
@@ -117,6 +117,8 @@ export default function Home() {
   const [hours, setHours] = useState(6);
   const [filter, setFilter] = useState("");
   const [apiUp, setApiUp] = useState(true);
+  const filterRef = useRef("");
+  filterRef.current = filter;
 
   // status + ledger every 10s; equity history every 60s (one snapshot/min anyway)
   const refresh = useCallback(async () => {
@@ -127,7 +129,9 @@ export default function Home() {
       ]);
       if (!sr.ok) throw new Error(`status ${sr.status}`);
       setStatus(await sr.json());
-      if (lr.ok) setLedger(((await lr.json()).entries ?? []).reverse());
+      // don't clobber server-side search results while a filter is active
+      if (lr.ok && !filterRef.current.trim())
+        setLedger(((await lr.json()).entries ?? []).reverse());
       setApiUp(true);
     } catch {
       setApiUp(false);
@@ -160,6 +164,20 @@ export default function Home() {
     const id = setInterval(refreshEquity, 60000);
     return () => clearInterval(id);
   }, [connected, refreshEquity]);
+
+  // filter searches the FULL history server-side (debounced)
+  useEffect(() => {
+    if (!connected || !filter.trim()) return;
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`${API}/api/v1/ledger?n=60&q=${encodeURIComponent(filter.trim())}`);
+        if (r.ok) setLedger(((await r.json()).entries ?? []).reverse());
+      } catch {
+        /* keep current list */
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [connected, filter]);
 
   if (!connected) return <ConnectScreen onConnected={() => setConnected(true)} />;
 
