@@ -21,7 +21,7 @@ const HELP_TEXT =
   "\n\nAnything else you type, I'll just answer as your guardian.";
 
 export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [sent, setSent] = useState<Bubble[]>([]);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
