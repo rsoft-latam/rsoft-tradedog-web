@@ -8,17 +8,21 @@ type LedgerEntry = { ts: string; kind: string; payload: Record<string, unknown> 
 type Bubble = { side: "dog" | "me"; text: string; ts: number };
 
 const COMMANDS = [
-  { icon: "✅", label: "Status", cmd: "status" },
-  { icon: "🛡️", label: "Protect", cmd: "protect" },
-  { icon: "📊", label: "Report", cmd: "report" },
-  { icon: "🛑", label: "Kill", cmd: "kill", confirm: true },
+  { cmd: "/status", desc: "Equity, P&L and positions right now" },
+  { cmd: "/protect", desc: "Collar your biggest unprotected position" },
+  { cmd: "/report", desc: "Full daily report" },
+  { cmd: "/kill", desc: "Emergency stop — cancel everything" },
+  { cmd: "/help", desc: "List commands" },
 ];
+
+const HELP_TEXT =
+  "🐕 I understand these commands:\n" +
+  COMMANDS.map(c => `${c.cmd} — ${c.desc}`).join("\n") +
+  "\n\nAnything else you type, I'll just answer as your guardian.";
 
 export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
   const [open, setOpen] = useState(true);
   const [sent, setSent] = useState<Bubble[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [confirming, setConfirming] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -81,52 +85,70 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [bubbles.length]);
 
-  async function run(cmd: string, label: string, needsConfirm?: boolean) {
-    if (needsConfirm && confirming !== cmd) {
-      setConfirming(cmd);
-      setTimeout(() => setConfirming(null), 4000);
-      return;
-    }
-    setConfirming(null);
-    setBusy(true);
-    const now = Date.now();
-    setSent((s) => [...s, { side: "me", text: label, ts: now }]);
-    try {
-      const r = await fetch(`${API}/api/v1/command`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: cmd }),
-      });
-      const data = await r.json();
-      const reply = data.reply ?? data.detail ?? "…";
-      setSent((s) => [...s, { side: "dog", text: String(reply), ts: Date.now() }]);
-    } catch {
-      setSent((s) => [...s, { side: "dog", text: "⚠️ Couldn't run that — check the connection.", ts: Date.now() }]);
-    } finally {
-      setBusy(false);
-    }
+  function pushMe(text: string) {
+    setSent((s) => [...s, { side: "me", text, ts: Date.now() }]);
+  }
+  function pushDog(text: string) {
+    setSent((s) => [...s, { side: "dog", text, ts: Date.now() }]);
   }
 
-  async function ask() {
+  async function callApi(path: string, body: unknown): Promise<string> {
+    const r = await fetch(`${API}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    return String(data.reply ?? data.detail ?? "…");
+  }
+
+  async function send() {
     const q = draft.trim();
     if (!q || typing) return;
     setDraft("");
-    setSent((s) => [...s, { side: "me", text: q, ts: Date.now() }]);
+    pushMe(q);
+
+    // slash commands — like a real WhatsApp/Telegram bot
+    if (q.startsWith("/")) {
+      const [cmd, ...rest] = q.toLowerCase().split(/\s+/);
+      if (cmd === "/help") return pushDog(HELP_TEXT);
+      if (cmd === "/kill" && rest[0] !== "confirm") {
+        return pushDog(
+          "⚠️ /kill cancels every order and closes ALL positions. This is the emergency stop.\n\nIf you're sure, type: /kill confirm",
+        );
+      }
+      const map: Record<string, string> = {
+        "/status": "status",
+        "/protect": "protect",
+        "/report": "report",
+        "/kill": "kill",
+      };
+      const command = map[cmd];
+      if (!command) return pushDog(`🐕 I don't know ${cmd}. Type /help to see what I can do.`);
+      setTyping(true);
+      try {
+        pushDog(await callApi("/api/v1/command", { command }));
+      } catch {
+        pushDog("⚠️ Couldn't run that — check the connection.");
+      } finally {
+        setTyping(false);
+      }
+      return;
+    }
+
+    // free-form chat
     setTyping(true);
     try {
-      const r = await fetch(`${API}/api/v1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: q }),
-      });
-      const data = await r.json();
-      setSent((s) => [...s, { side: "dog", text: String(data.reply ?? data.detail ?? "…"), ts: Date.now() }]);
+      pushDog(await callApi("/api/v1/chat", { message: q }));
     } catch {
-      setSent((s) => [...s, { side: "dog", text: "⚠️ Didn't catch that — check the connection.", ts: Date.now() }]);
+      pushDog("⚠️ Didn't catch that — check the connection.");
     } finally {
       setTyping(false);
     }
   }
+
+  const showMenu = draft.startsWith("/") && !draft.includes(" ");
+  const menuItems = COMMANDS.filter((c) => c.cmd.startsWith(draft.toLowerCase()));
 
   if (!open) {
     return (
@@ -160,7 +182,7 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
         </div>
         <div className="wa-chat" ref={chatRef}>
           {bubbles.length === 0 && (
-            <div className="wa-day">The dog will text you when something happens 🐕</div>
+            <div className="wa-day">The dog will text you when something happens 🐕 · type /help</div>
           )}
           {bubbles.map((b, i) => (
             <div key={i} className={`wa-bubble ${b.side === "me" ? "me" : "dog"}`}>
@@ -172,30 +194,30 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
           ))}
           {typing && <div className="wa-bubble dog wa-typing">🐕 typing…</div>}
         </div>
-        <div className="wa-actions">
-          {COMMANDS.map((c) => (
-            <button
-              key={c.cmd}
-              className={`wa-action ${confirming === c.cmd ? "danger" : ""}`}
-              disabled={busy}
-              onClick={() => run(c.cmd, `${c.icon} ${c.label}`, c.confirm)}
-            >
-              {confirming === c.cmd ? "Are you sure? 🛑" : `${c.icon} ${c.label}`}
+        <div className="wa-inputwrap">
+          {showMenu && menuItems.length > 0 && (
+            <div className="wa-cmdmenu">
+              {menuItems.map((c) => (
+                <button key={c.cmd} className="wa-cmditem" onClick={() => setDraft(c.cmd + " ")}>
+                  <span className="wa-cmd">{c.cmd}</span>
+                  <span className="wa-cmddesc">{c.desc}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="wa-inputbar">
+            <input
+              className="wa-input"
+              placeholder="Message · /help for commands"
+              value={draft}
+              maxLength={500}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+            />
+            <button className="wa-send" onClick={send} disabled={typing || !draft.trim()}>
+              ➤
             </button>
-          ))}
-        </div>
-        <div className="wa-inputbar">
-          <input
-            className="wa-input"
-            placeholder="Ask TradeDog…"
-            value={draft}
-            maxLength={500}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && ask()}
-          />
-          <button className="wa-send" onClick={ask} disabled={typing || !draft.trim()}>
-            ➤
-          </button>
+          </div>
         </div>
       </div>
     </div>
