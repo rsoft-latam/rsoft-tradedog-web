@@ -21,7 +21,40 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
   const [confirming, setConfirming] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+
+  function onDragStart(e: React.PointerEvent) {
+    if ((e.target as HTMLElement).closest(".wa-close")) return;
+    const rect = wrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    dragStart.current = { px: e.clientX, py: e.clientY, x: rect.left, y: rect.top };
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // synthetic events / odd browsers: drag still works without capture
+    }
+    setDragging(true);
+  }
+
+  function onDragMove(e: React.PointerEvent) {
+    const s = dragStart.current;
+    if (!s) return;
+    const w = wrapRef.current?.offsetWidth ?? 340;
+    const h = wrapRef.current?.offsetHeight ?? 660;
+    setPos({
+      x: Math.min(Math.max(s.x + e.clientX - s.px, 8 - w * 0.5), window.innerWidth - w * 0.5),
+      y: Math.min(Math.max(s.y + e.clientY - s.py, 0), window.innerHeight - h * 0.25),
+    });
+  }
+
+  function onDragEnd() {
+    dragStart.current = null;
+    setDragging(false);
+  }
 
   const incoming: Bubble[] = ledger
     .filter((e) => e.kind === "alert" || e.kind === "report")
@@ -104,10 +137,20 @@ export default function Phone({ ledger }: { ledger: LedgerEntry[] }) {
   }
 
   return (
-    <div className="phone-wrap">
+    <div
+      className="phone-wrap"
+      ref={wrapRef}
+      style={pos ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" } : undefined}
+    >
       <div className="phone">
         <div className="phone-notch" />
-        <div className="wa-header">
+        <div
+          className={`wa-header ${dragging ? "dragging" : ""}`}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+        >
           <button className="wa-close" onClick={() => setOpen(false)}>×</button>
           <span className="wa-avatar">🐕</span>
           <div>

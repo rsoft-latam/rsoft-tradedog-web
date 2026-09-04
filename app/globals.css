@@ -250,3 +250,7 @@ button:disabled { opacity: .5; cursor: default; }
 }
 .wa-typing { color: #8696a0; font-style: italic; }
 @media (max-width: 900px) { .phone-wrap { display: none; } .phone-fab { display: none; } }
+
+/* draggable phone */
+.wa-header { cursor: grab; user-select: none; touch-action: none; }
+.wa-header.dragging { cursor: grabbing; }
