@@ -26,6 +26,7 @@ type Asi = {
 
 type Status = {
   guardian: string;
+  platform?: string;
   equity: number;
   pnl_today: number;
   buying_power: number;
@@ -42,6 +43,7 @@ function usd(n: number | undefined | null) {
 }
 
 function ConnectScreen({ onConnected }: { onConnected: () => void }) {
+  const [platform, setPlatform] = useState<"alpaca" | "binance">("alpaca");
   const [key, setKey] = useState("");
   const [secret, setSecret] = useState("");
   const [error, setError] = useState("");
@@ -51,10 +53,14 @@ function ConnectScreen({ onConnected }: { onConnected: () => void }) {
     setBusy(true);
     setError("");
     try {
+      const body =
+        platform === "binance"
+          ? { platform, binance_api_key: key, binance_secret_key: secret }
+          : { platform, alpaca_api_key: key, alpaca_secret_key: secret };
       const r = await fetch(`${API}/api/v1/connect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alpaca_api_key: key, alpaca_secret_key: secret }),
+        body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error((await r.json()).detail ?? "connection failed");
       localStorage.setItem("tradedog_connected", "1");
@@ -79,10 +85,32 @@ function ConnectScreen({ onConnected }: { onConnected: () => void }) {
       </div>
       <div className="login-form">
         <div className="connect-card">
-          <h2>Connect your Alpaca account</h2>
-          <p className="sub">Paper trading · the guardian activates instantly</p>
+          <div className="platform-tabs">
+            <button
+              className={`platform-tab ${platform === "alpaca" ? "on" : ""}`}
+              onClick={() => setPlatform("alpaca")}
+            >
+              🦙 Alpaca
+            </button>
+            <button
+              className={`platform-tab ${platform === "binance" ? "on" : ""}`}
+              onClick={() => setPlatform("binance")}
+            >
+              🟡 Binance <span className="beta-chip">beta</span>
+            </button>
+          </div>
+          <h2>Connect your {platform === "binance" ? "Binance" : "Alpaca"} account</h2>
+          <p className="sub">
+            {platform === "binance"
+              ? "Spot testnet · watch, fix and kill switch (options collars are Alpaca-only)"
+              : "Paper trading · the guardian activates instantly"}
+          </p>
           <div className="perm">✅ Read positions and orders</div>
-          <div className="perm">✅ Execute protections (collars, cancellations)</div>
+          <div className="perm">
+            {platform === "binance"
+              ? "✅ Cancel runaway orders (kill switch)"
+              : "✅ Execute protections (collars, cancellations)"}
+          </div>
           <div className="perm">❌ Never withdraws funds</div>
           <br />
           {error && <div className="error">{error}</div>}
@@ -207,7 +235,9 @@ export default function Home() {
             onChange={(e) => setFilter(e.target.value)}
           />
           <span className={`badge ${apiUp ? "" : "off"}`}>
-            {apiUp ? "● Guardian active" : "● API offline"}
+            {apiUp
+              ? `● Guardian active${status?.platform ? " · " + (status.platform === "binance" ? "Binance" : "Alpaca") : ""}`
+              : "● API offline"}
           </span>
         </div>
 

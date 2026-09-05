@@ -271,3 +271,16 @@ button:disabled { opacity: .5; cursor: default; }
 .wa-cmditem:hover { background: #2a3942; filter: none; }
 .wa-cmd { color: #53bdeb; font-size: 13px; font-weight: 700; font-family: ui-monospace, Menlo, monospace; }
 .wa-cmddesc { color: #8696a0; font-size: 11.5px; }
+
+/* platform tabs on the connect screen */
+.platform-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.platform-tab {
+  flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+  font-weight: 700; font-size: 14px; border-radius: 8px; padding: 10px;
+}
+.platform-tab:hover { filter: none; border-color: var(--purple); color: var(--purple); }
+.platform-tab.on { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); }
+.beta-chip {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; vertical-align: middle;
+  background: var(--amber-bg); color: var(--amber); border-radius: 4px; padding: 1px 5px; margin-left: 4px;
+}
