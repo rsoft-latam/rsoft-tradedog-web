@@ -43,7 +43,7 @@ function usd(n: number | undefined | null) {
 }
 
 function ConnectScreen({ onConnected }: { onConnected: () => void }) {
-  const [platform, setPlatform] = useState<"alpaca" | "binance">("alpaca");
+  const [platform, setPlatform] = useState<"alpaca" | "binance" | null>(null);
   const [key, setKey] = useState("");
   const [secret, setSecret] = useState("");
   const [error, setError] = useState("");
@@ -85,46 +85,76 @@ function ConnectScreen({ onConnected }: { onConnected: () => void }) {
       </div>
       <div className="login-form">
         <div className="connect-card">
-          <div className="platform-tabs">
-            <button
-              className={`platform-tab ${platform === "alpaca" ? "on" : ""}`}
-              onClick={() => setPlatform("alpaca")}
-            >
-              🦙 Alpaca
-            </button>
-            <button
-              className={`platform-tab ${platform === "binance" ? "on" : ""}`}
-              onClick={() => setPlatform("binance")}
-            >
-              🟡 Binance <span className="beta-chip">beta</span>
-            </button>
-          </div>
-          <h2>Connect your {platform === "binance" ? "Binance" : "Alpaca"} account</h2>
-          <p className="sub">
-            {platform === "binance"
-              ? "Spot testnet · watch, fix and kill switch (options collars are Alpaca-only)"
-              : "Paper trading · the guardian activates instantly"}
-          </p>
-          <div className="perm">✅ Read positions and orders</div>
-          <div className="perm">
-            {platform === "binance"
-              ? "✅ Cancel runaway orders (kill switch)"
-              : "✅ Execute protections (collars, cancellations)"}
-          </div>
-          <div className="perm">❌ Never withdraws funds</div>
-          <br />
-          {error && <div className="error">{error}</div>}
-          <input placeholder="API Key" value={key} onChange={(e) => setKey(e.target.value)} />
-          <input
-            placeholder="API Secret"
-            type="password"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-          />
-          <button onClick={connect} disabled={busy || !key || !secret}>
-            {busy ? "Connecting..." : "Activate guardian"}
-          </button>
-          <p className="note">ℹ️ Production roadmap: OAuth via Alpaca Connect (scoped, revocable)</p>
+          {platform === null ? (
+            <>
+              <h2>Choose your platform</h2>
+              <p className="sub">Where does your trading agent live?</p>
+              <button className="platform-card" onClick={() => setPlatform("alpaca")}>
+                <span className="platform-ico">🦙</span>
+                <span className="platform-info">
+                  <span className="platform-name">Alpaca</span>
+                  <span className="platform-desc">
+                    Stocks &amp; options · paper trading · full guardian: watch, fix, collars, kill switch
+                  </span>
+                </span>
+                <span className="platform-arrow">→</span>
+              </button>
+              <button className="platform-card" onClick={() => setPlatform("binance")}>
+                <span className="platform-ico">🟡</span>
+                <span className="platform-info">
+                  <span className="platform-name">
+                    Binance <span className="beta-chip">beta</span>
+                  </span>
+                  <span className="platform-desc">
+                    Crypto spot · testnet · guardian tier: watch, fix, kill switch
+                  </span>
+                </span>
+                <span className="platform-arrow">→</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="back-link" onClick={() => { setPlatform(null); setError(""); }}>
+                ← All platforms
+              </button>
+              <h2>
+                {platform === "binance" ? "🟡 Connect Binance" : "🦙 Connect Alpaca"}
+              </h2>
+              <p className="sub">
+                {platform === "binance"
+                  ? "Spot testnet keys — get them free at testnet.binance.vision"
+                  : "Paper trading keys — from app.alpaca.markets → API Keys"}
+              </p>
+              <div className="perm">✅ Read positions and orders</div>
+              <div className="perm">
+                {platform === "binance"
+                  ? "✅ Cancel runaway orders (kill switch)"
+                  : "✅ Execute protections (collars, cancellations)"}
+              </div>
+              <div className="perm">❌ Never withdraws funds</div>
+              <br />
+              {error && <div className="error">{error}</div>}
+              <input
+                placeholder={platform === "binance" ? "Binance Testnet API Key" : "Alpaca API Key (PK…)"}
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+              />
+              <input
+                placeholder={platform === "binance" ? "Binance Testnet Secret" : "Alpaca API Secret"}
+                type="password"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+              />
+              <button onClick={connect} disabled={busy || !key || !secret}>
+                {busy ? "Connecting..." : "Activate guardian"}
+              </button>
+              <p className="note">
+                {platform === "binance"
+                  ? "ℹ️ Options collars are Alpaca-only for now — Binance gets the watch/fix/kill tier"
+                  : "ℹ️ Production roadmap: OAuth via Alpaca Connect (scoped, revocable)"}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -284,3 +284,21 @@ button:disabled { opacity: .5; cursor: default; }
   font-size: 9px; font-weight: 800; text-transform: uppercase; vertical-align: middle;
   background: var(--amber-bg); color: var(--amber); border-radius: 4px; padding: 1px 5px; margin-left: 4px;
 }
+
+/* platform chooser cards (vertical) */
+.platform-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 18px 16px; margin-bottom: 12px; cursor: pointer; color: var(--text);
+}
+.platform-card:hover { filter: none; border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-soft); }
+.platform-ico { font-size: 30px; }
+.platform-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.platform-name { font-weight: 800; font-size: 16px; color: var(--text); }
+.platform-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.platform-arrow { color: var(--purple); font-weight: 800; font-size: 18px; }
+.back-link {
+  width: auto; background: transparent; color: var(--muted); font-size: 12.5px;
+  font-weight: 700; padding: 0; margin-bottom: 14px; text-align: left;
+}
+.back-link:hover { filter: none; color: var(--purple); }
